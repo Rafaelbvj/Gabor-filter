@@ -49,9 +49,9 @@ Matrix <NUM> generate_kernel (int sz, bool op, NUM desvio, NUM theta, NUM phi, N
 }
 
 GtkWidget *window;
-GtkWidget *im;
+GtkWidget *im = NULL;
 GtkWidget *vbox_im,*vbox_param;
-GtkWidget *grid_im;
+GtkWidget *grid_im,*align;
 
 GtkWidget *button_update;
 GtkWidget *edit_t,*edit_th,*edit_de,*edit_g,*edit_l,*edit_ks;
@@ -72,7 +72,7 @@ void OpenFile(void *c)
     switch(res)
     {
     case GTK_RESPONSE_ACCEPT:
-        gtk_widget_destroy(im);
+        if(im != NULL){gtk_widget_destroy(im);}
 
         gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(filechooser));
 
@@ -231,7 +231,7 @@ int main(int argc,char *argv[])
     vbox_param = gtk_vbox_new(FALSE,0);
 
     //Menu
-    GtkWidget *vbox = gtk_vbox_new(FALSE, 0);
+    GtkWidget *vbox_menu = gtk_vbox_new(FALSE, 0);
     GtkWidget *menubar = gtk_menu_bar_new();
     GtkWidget *menu = gtk_menu_new();
     GtkWidget *menuitem_file = gtk_menu_item_new_with_label("Arquivo");
@@ -241,15 +241,11 @@ int main(int argc,char *argv[])
     gtk_menu_shell_append(GTK_MENU_SHELL(menu), item_open);
 
     g_signal_connect(GTK_MENU_ITEM(item_open),"activate",G_CALLBACK(OpenFile),0);
-    gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox_menu), menubar, FALSE, FALSE, 0);
     //******************//
 
-    GtkWidget *align = gtk_grid_new();
+    align = gtk_grid_new();
     grid_im = gtk_grid_new();
-
-    gtk_grid_set_column_spacing(GTK_GRID(align),1);
-
-    gtk_box_pack_start(GTK_BOX(vbox_im),im,false,TRUE,0);
 
     gtk_box_pack_start(GTK_BOX(vbox_param), label1,false,false,0);
     gtk_box_pack_start(GTK_BOX(vbox_param), edit_t,false,false,0);
@@ -270,7 +266,7 @@ int main(int argc,char *argv[])
 
     gtk_grid_attach(GTK_GRID(align), grid_im,0,3,100,50);
 
-    gtk_container_add(GTK_CONTAINER(align),vbox);
+    gtk_container_add(GTK_CONTAINER(align),vbox_menu);
     gtk_container_add(GTK_CONTAINER(window),align);
 
 
