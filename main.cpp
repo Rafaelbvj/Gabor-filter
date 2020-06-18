@@ -194,8 +194,6 @@ void Update()
 int main(int argc,char *argv[])
 {
 
-
-
     gtk_init(&argc,&argv);
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window),"Filtro de Gabor");
@@ -228,8 +226,6 @@ int main(int argc,char *argv[])
     label4 = gtk_label_new("Gama:");
     label5 = gtk_label_new("Lambda:");
     label6 = gtk_label_new("Kernel (tamanho):");
-
-    im     = gtk_image_new_from_file("teste.bmp");
 
     vbox_im = gtk_vbox_new(FALSE,0);
     vbox_param = gtk_vbox_new(FALSE,0);
@@ -280,7 +276,7 @@ int main(int argc,char *argv[])
 
     g_signal_connect(GTK_BUTTON(button_update),"clicked",G_CALLBACK(Update),0);
     g_signal_connect(GTK_WINDOW(window),"destroy",G_CALLBACK(gtk_main_quit),0);
-    //gtk_window_set_resizable(GTK_WINDOW(window),false);
+
     gtk_widget_show_all(window);
     gtk_main();
     return 0;
