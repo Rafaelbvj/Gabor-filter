@@ -15,7 +15,7 @@ include_directories(${GTK_INCLUDE_DIRS})
 add_executable(GlaborEx "main.cpp")
 target_link_libraries(GlaborEx ${GTK_LIBRARIES})
 target_link_libraries(GlaborEx ${GLIB_LIBRARIES})
-install(TARGETS GlaborEx DESTINATION ${CMAKE_SOURCE_DIR}/src/)
+install(TARGETS GlaborEx DESTINATION ${CMAKE_SOURCE_DIR}/bin/)
 
 
 
