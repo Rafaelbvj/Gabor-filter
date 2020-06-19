@@ -5,7 +5,6 @@
 #include <vector>
 #include <cstring>
 #include <algorithm>
-
 #define FILE_INFO
 
 
@@ -119,7 +118,7 @@ public:
         }
         fclose(file);
         delete []pad;
-
+        return 0;
     }
     ~Image()
     {

@@ -9,7 +9,7 @@ using namespace std;
 
 typedef long double NUM;
 
-NUM thet = M_PI/2,phi=0, lambd = 3, gam = 0.4,desvio=30;
+
 
 //Gabor function
 complex <NUM> Gabor(NUM x, NUM y, NUM dev, NUM theta, NUM thi, NUM lambda, NUM gama)
@@ -24,14 +24,16 @@ complex <NUM> Gabor(NUM x, NUM y, NUM dev, NUM theta, NUM thi, NUM lambda, NUM g
     return num;
 }
 //A kernel, matrix of gabor values
-Matrix <NUM> generate_kernel (int sz, bool op, NUM desvio, NUM theta, NUM phi, NUM lambda, NUM gama)
+Matrix <NUM> generate_kernel (int sz, bool op, NUM step_size, NUM desvio, NUM theta, NUM phi, NUM lambda, NUM gama)
 {
     Matrix <NUM> m(sz,sz);
     int limit_y = sz/2;
     int limit_x = sz/2;
-    for(int i=-limit_y, k =0; k<sz; i++,k++)
+    NUM i = -limit_y;
+    NUM e = -limit_x;
+    for(int k =0; k<sz; i+=step_size,k++)
     {
-        for(int e=-limit_x,j=0; j<sz; e++,j++)
+        for(int j=0; j<sz; e+=step_size,j++)
         {
             complex <NUM> teste = Gabor(i,e,desvio,theta,phi,lambda,gama);
             if(op)
@@ -53,9 +55,9 @@ GtkWidget *im = NULL;
 GtkWidget *vbox_im,*vbox_param;
 GtkWidget *grid_im,*align;
 
-GtkWidget *button_update;
+GtkWidget *button_update, *button_size_step;
 GtkWidget *edit_t,*edit_th,*edit_de,*edit_g,*edit_l,*edit_ks;
-GtkWidget *label,*label1,*label2,*label3,*label4,*label5,*label6;
+GtkWidget *label,*label1,*label2,*label3,*label4,*label5,*label6, *label7;
 char *filename = NULL;
 
 void OpenFile(void *c)
@@ -92,6 +94,9 @@ void OpenFile(void *c)
 
 
 }
+
+NUM thet = M_PI/2,phi=0, lambd = 3, gam = 0.4,desvio=30;
+
 void Update()
 {
     if(filename == NULL)
@@ -106,8 +111,8 @@ void Update()
     desvio = atol(gtk_entry_get_text(GTK_ENTRY(edit_de)))*M_PIf32/180.0f;
     gam = atol(gtk_entry_get_text(GTK_ENTRY(edit_g)))*M_PIf32/180.0f;
     lambd = atol(gtk_entry_get_text(GTK_ENTRY(edit_l)))*M_PIf32/180.0f;
+    NUM step_size = gtk_spin_button_get_value(GTK_SPIN_BUTTON(button_size_step));
     int size_kernel = atoi(gtk_entry_get_text(GTK_ENTRY(edit_ks)));
-
     Image ima(filename);
     if(size_kernel > ima.get_bitmap().biHeight || size_kernel > ima.get_bitmap().biWidth)
     {
@@ -117,7 +122,7 @@ void Update()
         return;
     }
 
-    Matrix <NUM> m = generate_kernel(size_kernel,true, desvio,thet,phi,lambd,gam);
+    Matrix <NUM> m = generate_kernel(size_kernel,true, step_size,desvio,thet,phi,lambd,gam);
 
     cout<<"Kernel:"<<endl<<m<<endl;
 
@@ -148,9 +153,9 @@ void Update()
             for(size_t w=0; w<bmp.biWidth; w++)
             {
 
-                p[h][w].R = (unsigned char) c->get_value_XY(w,h);
-                p[h][w].B = (unsigned char) k->get_value_XY(w,h);;
-                p[h][w].G = (unsigned char) d->get_value_XY(w,h);;
+                p[h][w].R = ((unsigned char) c->get_value_XY(w,h)+(unsigned char) k->get_value_XY(w,h)+(unsigned char) d->get_value_XY(w,h))/3;
+
+                p[h][w].B = p[h][w].G = p[h][w].R;
 
             }
             fwrite(p[h],sizeof(Pixel),bmp.biWidth,file);
@@ -171,9 +176,8 @@ void Update()
                 Matrix <NUM> *d = (*c)<<m;
                 Matrix <NUM> *q = (*k)<<m;
                 Matrix <NUM> *l = (*x)<<m;
-                p[h][w].R = (unsigned char) d->sum_all_elements();
-                p[h][w].B = (unsigned char) l->sum_all_elements();
-                p[h][w].G = (unsigned char) q->sum_all_elements();
+                p[h][w].R = ((unsigned char) d->sum_all_elements() + (unsigned char) l->sum_all_elements() + (unsigned char) q->sum_all_elements())/3;
+                p[h][w].B = p[h][w].R = p[h][w].G;
                 delete c,k,x,d,q,l;
 
             }
@@ -200,6 +204,9 @@ int main(int argc,char *argv[])
     gtk_window_set_default_size(GTK_WINDOW(window),500,500);
 
     button_update = gtk_button_new_with_label("Update");
+    button_size_step = gtk_spin_button_new_with_range(0,10,0.1);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(button_size_step),0.5);
+
     edit_t = gtk_entry_new();
     edit_th = gtk_entry_new();
     edit_de = gtk_entry_new();
@@ -226,10 +233,11 @@ int main(int argc,char *argv[])
     label4 = gtk_label_new("Gama:");
     label5 = gtk_label_new("Lambda:");
     label6 = gtk_label_new("Kernel (tamanho):");
+    label7 = gtk_label_new("Step size:");
 
-    vbox_im = gtk_vbox_new(FALSE,0);
-    vbox_param = gtk_vbox_new(FALSE,0);
-
+    vbox_im = gtk_box_new(GTK_ORIENTATION_VERTICAL,0);
+    vbox_param = gtk_box_new(GTK_ORIENTATION_VERTICAL,5);
+    gtk_widget_set_valign(vbox_im,GTK_ALIGN_START);
     //Menu
     GtkWidget *vbox_menu = gtk_vbox_new(FALSE, 0);
     GtkWidget *menubar = gtk_menu_bar_new();
@@ -247,6 +255,7 @@ int main(int argc,char *argv[])
     align = gtk_grid_new();
     grid_im = gtk_grid_new();
 
+
     gtk_box_pack_start(GTK_BOX(vbox_param), label1,false,false,0);
     gtk_box_pack_start(GTK_BOX(vbox_param), edit_t,false,false,0);
     gtk_box_pack_start(GTK_BOX(vbox_param), label2,false,false,0);
@@ -259,6 +268,8 @@ int main(int argc,char *argv[])
     gtk_box_pack_start(GTK_BOX(vbox_param), edit_l,false,false,0);
     gtk_box_pack_start(GTK_BOX(vbox_param), label6,false,false,0);
     gtk_box_pack_start(GTK_BOX(vbox_param), edit_ks,false,false,0);
+    gtk_box_pack_start(GTK_BOX(vbox_param), label7,false,false,0);
+    gtk_box_pack_start(GTK_BOX(vbox_param), button_size_step,false,false,0);
     gtk_box_pack_start(GTK_BOX(vbox_param), button_update,false,false,0);
 
     gtk_grid_attach(GTK_GRID(grid_im), vbox_param,0,0,100,50);

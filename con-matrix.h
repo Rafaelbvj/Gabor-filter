@@ -95,7 +95,7 @@ public:
     {
         if(im.pixels == NULL)
         {
-            return 0;
+            return false;
         }
         if(data != NULL)
         {
@@ -125,6 +125,7 @@ public:
             }
 
         }
+        return true;
     }
     Data* operator[] (int c)
     {
